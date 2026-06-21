@@ -41,10 +41,27 @@ async def responder_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text(respuesta_ia)
 
 import asyncio
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+
+# Mini servidor web para engañar a Render y mantenerlo gratis
+class MockServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"Bot activo")
+
+def run_mock_server():
+    server = HTTPServer(('0.0.0.0', 10000), MockServer)
+    server.serve_forever()
 
 async def main():
     try:
-        # Iniciar la aplicación
+        # Iniciar el servidor web falso en un hilo separado
+        threading.Thread(target=run_mock_server, daemon=True).start()
+
+        # Iniciar la aplicación del bot
         application = Application.builder().token(TELEGRAM_TOKEN).build()
         
         # Registrar respuestas
