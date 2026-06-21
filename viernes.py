@@ -40,21 +40,30 @@ async def responder_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     await update.message.reply_text(respuesta_ia)
 
-def main():
+import asyncio
+
+async def main():
     try:
         # Iniciar la aplicación
         application = Application.builder().token(TELEGRAM_TOKEN).build()
-
+        
         # Registrar respuestas
         application.add_handler(CommandHandler("start", start))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder_mensaje))
-
-        print("Viernes está encendida y escuchando...")
-        # Arranca el bot y bloquea la terminal para que no se cierre sola
-        application.run_polling()
         
+        print("Viernes está encendida y escuchando...")
+        
+        # Inicializa e inicia el bot de forma asíncrona manual
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling()
+        
+        # Mantiene el bucle corriendo sin bloquear el hilo principal
+        while True:
+            await asyncio.sleep(1)
+            
     except Exception as e:
         print(f"Error al iniciar el bot: {e}")
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
